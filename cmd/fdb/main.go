@@ -1,36 +1,48 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
-	"github.com/filecoin-project/go-bitfield"
-	"github.com/filecoin-project/go-state-types/big"
 	"os"
 	"sort"
 
+	"github.com/filecoin-project/go-bitfield"
+	"github.com/filecoin-project/go-state-types/big"
 	"github.com/urfave/cli/v2"
 )
 
-var bfDecodeCmd = &cli.Command{
-	Name:        "bf",
-	Description: "decode bitfield from base64 bytes",
-	Action:      runDecodeBFCmd,
-}
-
-var intDecodeCmd = &cli.Command{
-	Name:        "int",
-	Description: "decode big.Int from base64 bytes",
-	Action:      runDecodeIntCmd,
+var decodeCmd = &cli.Command{
+	Name:        "decode",
+	Description: "decode raw blockchain data",
+	Subcommands: []*cli.Command{
+		{
+			Name:  "bf",
+			Usage: "decode raw bitfield bytes",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{Name: "b64"},
+			},
+			Action: runBitfieldDecode,
+		},
+		{
+			Name:  "int",
+			Usage: "decode raw big int bytes",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{Name: "b64"},
+			},
+			Action: runIntDecode,
+		},
+	},
 }
 
 func main() {
 	app := &cli.App{
-		Name:        "decode",
-		Usage:       "Decode a hex encoded data structure",
-		Description: "Decode a hex encoded data structure",
+		Name:        "fdb",
+		Usage:       "filecoin blockchain debug utilities",
+		Description: "filecoin blockchain debug utilities",
 		Commands: []*cli.Command{
-			bfDecodeCmd,
-			intDecodeCmd,
+			decodeCmd,
 		},
 	}
 	sort.Sort(cli.CommandsByName(app.Commands))
@@ -43,12 +55,20 @@ func main() {
 	}
 }
 
-func runDecodeBFCmd(ctx *cli.Context) error {
-	hexString := ctx.Args().First()
-
-	b, err := hex.DecodeString(hexString)
-	if err != nil {
-		return err
+func runBitfieldDecode(c *cli.Context) error {
+	str := c.Args().First()
+	var b []byte
+	var err error
+	if c.Bool("b64") { // base 64
+		b, err = base64.StdEncoding.DecodeString(str)
+		if err != nil {
+			return err
+		}
+	} else { // hex string
+		b, err = hex.DecodeString(str)
+		if err != nil {
+			return err
+		}
 	}
 
 	bf, err := bitfield.NewFromBytes(b)
@@ -56,20 +76,34 @@ func runDecodeBFCmd(ctx *cli.Context) error {
 		return err
 	}
 
+	var bitset []uint64
 	bf.ForEach(func(u uint64) error {
-		fmt.Println(u)
+		bitset = append(bitset, u)
 		return nil
 	})
+	outBs, err := json.Marshal(bitset)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(outBs))
 
 	return nil
 }
 
-func runDecodeIntCmd(ctx *cli.Context) error {
-	hexString := ctx.Args().First()
-
-	b, err := hex.DecodeString(hexString)
-	if err != nil {
-		return err
+func runIntDecode(c *cli.Context) error {
+	str := c.Args().First()
+	var b []byte
+	var err error
+	if c.Bool("b64") { // base 64
+		b, err = base64.StdEncoding.DecodeString(str)
+		if err != nil {
+			return err
+		}
+	} else { // hex string
+		b, err = hex.DecodeString(str)
+		if err != nil {
+			return err
+		}
 	}
 
 	i, err := big.FromBytes(b)
