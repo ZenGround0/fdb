@@ -7,7 +7,7 @@
 if ["$#" -ne 4]; then
     echo "USAGE: xpq <chain-height> <miner-addr> <deadline-idx> <partition-idx>"
 fi
-which(tipget);
+which tipget;
 if ["$?" -ne 0 ]; then
     echo "tipget dependency not found, please install"
 fi
