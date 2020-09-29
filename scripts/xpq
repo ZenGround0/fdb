@@ -1,10 +1,13 @@
 #! /bin/bash
 
-# xpq <tipset-id> <miner-addr> <deadline-idx> <partition-idx>
+# xpq <chain-height> <miner-addr> <deadline-idx> <partition-idx>      
 # print the expiration queue of this partition
 
+# Get tipset id
+TS_ID=$(./lotus chain list --height=$1 --count=1 | ./tipget)
+
 # Get deadlines cid
-DLS_CID=$(./lotus state --tipset=$1 read-state $2 | jq ".Deadlines" | jq -r '.[]')
+DLS_CID=$(./lotus state --tipset=$TS_ID read-state $2 | jq ".Deadlines" | jq -r '.[]')
 #echo "DLS_CID: $DLS_CID"
 # Get deadline cid
 DL_CID=$(./lotus chain get $DLS_CID | jq '.[0]' | jq --argjson pidx "$3" '.[$pidx]' | jq -r '.[]')
