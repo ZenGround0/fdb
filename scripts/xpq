@@ -3,8 +3,18 @@
 # xpq <chain-height> <miner-addr> <deadline-idx> <partition-idx>      
 # print the expiration queue of this partition
 
+# argument check
+if ["$#" -ne 4]; then
+    echo "USAGE: xpq <chain-height> <miner-addr> <deadline-idx> <partition-idx>"
+fi
+which(tipget);
+if ["$?" -ne 0 ]; then
+    echo "tipget dependency not found, please install"
+fi
+
+
 # Get tipset id
-TS_ID=$(./lotus chain list --height=$1 --count=1 | ./tipget)
+TS_ID=$(./lotus chain list --height=$1 --count=1 | tipget)
 
 # Get deadlines cid
 DLS_CID=$(./lotus state --tipset=$TS_ID read-state $2 | jq ".Deadlines" | jq -r '.[]')
