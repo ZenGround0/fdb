@@ -1,5 +1,10 @@
 Utilities for debugging filecoin
+
+## fdb
+
 Currently just for decoding strings in the state tree.  Will add more things as needs are discovered.
+
+### Decode
 
 Big int byte decoding (hex string)
 ```
@@ -22,3 +27,12 @@ Base64 string decoding
 [182329]
 
 ```
+
+## Scripts
+
+xpq is a bash script for reading expiration queues. It requires a running lotu\
+s daemon and a lotus binary in the directory it is launched from.
+ 
+`xpq <tipset-id> <miner-addr> <deadline-idx> <partition-idx>`
+ 
+Output is json, so piping to jq gives nice output

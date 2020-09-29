@@ -1,0 +1,39 @@
+#! /bin/bash
+
+# xpq <tipset-id> <miner-addr> <deadline-idx> <partition-idx>
+# print the expiration queue of this partition
+
+# Get deadlines cid
+DLS_CID=$(./lotus state --tipset=$1 read-state $2 | jq ".Deadlines" | jq -r '.[]')
+#echo "DLS_CID: $DLS_CID"
+# Get deadline cid
+DL_CID=$(./lotus chain get $DLS_CID | jq '.[0]' | jq --argjson pidx "$3" '.[$pidx]' | jq -r '.[]')
+#echo "DL_CID: $DL_CID"
+# Get partition amt root cid
+P_AMT_CID=$(./lotus chain get $DL_CID | jq '.[0]' | jq -r '.[]')
+
+# Get partition cid
+
+# Get expiration queue cid
+Q_AMT_CID=$(./lotus chain get $P_AMT_CID"/@A:$4" | jq '.[4]' | jq -r '.[]')
+#echo "Q_AMT_CID: $Q_AMT_CID"
+# Get all expiry queue epochs
+XQ_EPOCHS=$(./lotus chain get --as-type=amt $Q_AMT_CID)
+
+# Print queue entries as valid json
+echo "["
+firstVal=$(echo $XQ_EPOCHS | awk '{print $1;}')
+echo "{\"epoch\": $firstVal,"
+echo "\"expSet\": "
+./lotus chain get $Q_AMT_CID"/@A:$firstVal"
+echo "}"
+for val in $(echo $XQ_EPOCHS | awk '{$1= ""; print $0}');
+do
+    echo ","
+    echo "{\"epoch\": $val,";
+    echo "\"expSet\": "
+    ./lotus chain get $Q_AMT_CID"/@A:$val";
+    echo "}"
+done
+echo "]"
+	      
