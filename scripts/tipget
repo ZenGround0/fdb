@@ -1,0 +1,2 @@
+#!/bin/bash
+grep $1 -ooE "[a-z2-7]{62}" | paste -s -d  ','
