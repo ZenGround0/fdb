@@ -4,12 +4,12 @@
 # print the expiration queue of this partition
 
 # argument check
-if ["$#" -ne 4]; then
+if [ "$#" -ne 4 ]; then
     echo "USAGE: xpq <chain-height> <miner-addr> <deadline-idx> <partition-idx>"
     exit 1
 fi
 which tipget;
-if ["$?" -ne 0 ]; then
+if [ "$?" -ne 0 ]; then
     echo "tipget dependency not found, please install"
     exit 2
 fi
